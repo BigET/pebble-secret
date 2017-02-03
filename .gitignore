@@ -1,3 +1,5 @@
+.lock-waf_linux2_build
+/build**
 # Object files
 *.o
 *.ko

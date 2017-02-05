@@ -26,7 +26,7 @@ function processData() {
 <form name="config" >
 <p>Secret title:<input name="title" type="text" /></p>
 <p>Secret text:</p>
-<p><input name="text" type="textaread" /></p>
+<p><textarea name="text" rows="4" cols="20"></textarea></p>
 <p>Encryption Key:<input name="key" type="text" /></p>
 <p><input type="button" value="Send" onclick="processData();"/></p>
 <p>Note: the encryption key must match the previous key, other wise the new secret will get corrupted.</p>

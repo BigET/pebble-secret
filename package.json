@@ -2,44 +2,60 @@
   "name": "secret",
   "author": "Eduard Budulea",
   "version": "1.0.0",
-  "keywords": ["pebble-app"],
+  "keywords": [
+    "pebble-app"
+  ],
   "private": true,
-  "dependencies": {},
+  "dependencies": {
+    "pebble-clay": "^1.0.4"
+  },
   "pebble": {
     "displayName": "secret",
     "uuid": "76575a1b-5e8c-46b0-9a24-063e8b07348a",
     "sdkVersion": "3",
     "enableMultiJS": true,
-    "targetPlatforms": [ "aplite", "basalt", "chalk", "diorite" ],
-    "watchapp": { "watchface": false },
-    "messageKeys": [],
+    "targetPlatforms": [
+      "aplite",
+      "basalt",
+      "chalk",
+      "diorite"
+    ],
+    "watchapp": {
+      "watchface": false
+    },
+    "capabilities": [ "configurable" ],
+    "messageKeys": [
+        "SecretTitle",
+        "SecretText",
+        "EncriptionKey"
+    ],
     "resources": {
       "media": [
-          {
-              "type": "bitmap",
-              "name": "DELETE",
-              "file": "action_bar_icon_delete.png"
-          },
-          {
-              "type": "bitmap",
-              "name": "UP",
-              "file": "action_bar_icon_up.png"
-          },
-          {
-              "type": "bitmap",
-              "name": "CHECK",
-              "file": "action_bar_icon_check.png"
-          },
-          {
-              "type": "bitmap",
-              "name": "DOWN",
-              "file": "action_bar_icon_down.png"
-          },
-          {
-              "type": "bitmap",
-              "name": "DISMISS",
-              "file": "action_bar_icon_dismiss.png"
-          }
+        {
+          "type": "bitmap",
+          "name": "DELETE",
+          "file": "action_bar_icon_delete.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "UP",
+          "file": "action_bar_icon_up.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "CHECK",
+          "file": "action_bar_icon_check.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "DOWN",
+          "file": "action_bar_icon_down.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "DISMISS",
+          "file": "action_bar_icon_dismiss.png"
+        }
       ]
     }
   }

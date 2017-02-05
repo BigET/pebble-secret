@@ -1,0 +1,35 @@
+<html>
+<head>
+<title>Secret configuration page</title>
+<script language="javascript" type="text/javascript">
+function processData() {
+    var query = location.search.substring(1);
+    var vars = query.split('&');
+    var target = "pebblejs://close#";
+    for (var i = 0; i < vars.length; i++) {
+        var pair = vars[i].split('=');
+        if (pair[0] === "return_to") {
+            target = pair[1];
+        }
+    }
+    var configData = {
+        "SecretTitle":document.forms["config"]["title"].value,
+        "SecretText":document.forms["config"]["text"].value,
+        "EncriptionKey":document.forms["config"]["key"].value
+    };
+    document.location = target + encodeURIComponent(JSON.stringify(configData));
+}
+</script>
+</head>
+<body>
+<p>Here you add a new secret to the app.</p>
+<form name="config" >
+<p>Secret title:<input name="title" type="text" /></p>
+<p>Secret text:</p>
+<p><input name="text" type="textaread" /></p>
+<p>Encryption Key:<input name="key" type="text" /></p>
+<p><input type="button" value="Send" onclick="processData();"/></p>
+<p>Note: the encryption key must match the previous key, other wise the new secret will get corrupted.</p>
+</form>
+</body>
+</html>

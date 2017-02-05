@@ -1,7 +1,7 @@
 Pebble.addEventListener('ready', function() {console.log('PebbleKit JS ready!');});
 
 Pebble.addEventListener('showConfiguration', function() {
-    var url = 'https://rawgit.com/pebble-examples/design-guides-slate-config/master/config/index.html';
+    var url = 'https://rawgit.com/BigET/pebble-secret/master/config/index.html';
     console.log('Showing configuration page: ' + url);
 
     Pebble.openURL(url);

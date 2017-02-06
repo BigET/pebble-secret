@@ -6,9 +6,7 @@
     "pebble-app"
   ],
   "private": true,
-  "dependencies": {
-    "pebble-clay": "^1.0.4"
-  },
+  "dependencies": {},
   "pebble": {
     "displayName": "secret",
     "uuid": "76575a1b-5e8c-46b0-9a24-063e8b07348a",
@@ -23,11 +21,13 @@
     "watchapp": {
       "watchface": false
     },
-    "capabilities": [ "configurable" ],
+    "capabilities": [
+      "configurable"
+    ],
     "messageKeys": [
-        "SecretTitle",
-        "SecretText",
-        "EncriptionKey"
+      "SecretTitle",
+      "SecretText",
+      "EncriptionKey"
     ],
     "resources": {
       "media": [

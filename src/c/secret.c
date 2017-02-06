@@ -1,7 +1,7 @@
 #include <pebble.h>
 
-static unsigned char *encodedData;
-static unsigned char *lastEncodedData;
+static char *encodedData;
+static char *lastEncodedData;
 static unsigned encodedDataLength;
 
 static Window *welcomeWin;
@@ -30,7 +30,7 @@ static void readEncripted(int const itemNr, int const offset) {
     if (mySize == E_DOES_NOT_EXIST) mySize = 0;
     if (itemNr >= 4) {
        if (offset) {
-           encodedData = (unsigned char *) malloc(encodedDataLength = offset + 4);
+           encodedData = (char *) malloc(encodedDataLength = offset + 4);
            encodedData[offset] = '\0';
            encodedData[offset + 1] = '\0';
            encodedData[offset + 2] = '\0';
@@ -48,11 +48,11 @@ static void encodeData(unsigned int const itemNr, unsigned int const offset) {
     if (itemNr == 0) {
         if (noffset > encodedDataLength) {
             lastEncodedData = encodedData;
-            encodedData = (unsigned char *) malloc(noffset);
+            encodedData = (char *) malloc(noffset);
         }
         encodedDataLength = noffset;
     } else encodeData(itemNr - 1, noffset);
-    if (encodedData + encodedDataLength - noffset != (unsigned char *) secretMenuItems[itemNr].title) {
+    if (encodedData + encodedDataLength - noffset != secretMenuItems[itemNr].title) {
         memcpy(encodedData + encodedDataLength - noffset, secretMenuItems[itemNr].title, len1);
         memcpy(encodedData + encodedDataLength - noffset + len1, secretItems[itemNr], len2);
     }
@@ -78,10 +78,51 @@ static void writeEncripted() {
     }
 }
 
+static void mkDialog(int index, void *context) {
+    if (mainSection.num_items > (unsigned) index) {
+        secretToDelete = index;
+        window_stack_push(deleteDialog, true);
+    }
+}
+
+static void addSecret(DictionaryIterator *iter, void *context) {
+    char *title = "NoTitle", *text = "", *lastED = encodedData;
+    int titleLen = 8, textLen = 1, lastItem,
+        titleOffset = encodedDataLength, textOffset;
+    Tuple *secretTitle = dict_find(iter, MESSAGE_KEY_SecretTitle);
+    Tuple *secretText = dict_find(iter, MESSAGE_KEY_SecretText);
+    if(!secretText && !secretTitle) return;
+    if(secretTitle && secretTitle->type == TUPLE_CSTRING && secretTitle->length > 0) {
+        title = secretTitle->value->cstring;
+        titleLen = secretTitle->length;
+    }
+    if(secretText && secretText->type == TUPLE_CSTRING && secretText->length > 0) {
+        text = secretText->value->cstring;
+        textLen = secretText->length;
+    }
+    encodedData = realloc(encodedData, encodedDataLength += titleLen + textLen + 2);
+    memcpy(encodedData + titleOffset, title, titleLen);
+    encodedData[textOffset = titleOffset + titleLen] = '\0';
+    memcpy(encodedData + (++textOffset), text, textLen);
+    encodedData[textOffset + textLen] = '\0';
+    lastItem = mainSection.num_items++;
+    if (encodedData != lastED) for (int i = 0; i < lastItem; ++i) {
+        secretMenuItems[i].title = encodedData + (secretMenuItems[i].title - lastED);
+        secretItems[i] = encodedData + (secretItems[i] - lastED);
+    }
+    secretMenuItems = realloc(secretMenuItems, mainSection.num_items * sizeof(SimpleMenuItem));
+    memset(secretMenuItems + lastItem, 0, sizeof(SimpleMenuItem));
+    secretMenuItems[lastItem].title = encodedData + titleOffset;
+    secretMenuItems[lastItem].callback = mkDialog;
+    secretItems = realloc(secretItems, mainSection.num_items * sizeof(char *));
+    secretItems[lastItem] = encodedData + textOffset;
+    mainSection.items = secretMenuItems;
+    menu_layer_reload_data(simple_menu_layer_get_menu_layer(secretsList));
+}
+
 static void finishKey(ClickRecognizerRef recognizer, void *context) {
     // decode encoded.
     window_stack_push(secretsListWin, true);
-    window_stack_remove(welcomeWin, false);
 }
 
 static void addHi(ClickRecognizerRef recognizer, void *context) {
@@ -132,12 +173,12 @@ static void startWelcome(Window *win) {
     encodedData = 0;
     readEncripted(0, 0);
     if (!encodedData) {
-        encodedData = (unsigned char*)malloc(17*20);
+        encodedData = (char *)malloc(17*20);
         encodedDataLength = 0;
         for (int i = 0; i < 16; ++i) {
-            encodedDataLength += snprintf((char *)encodedData + encodedDataLength, 20, "Titlul:%d", i);
+            encodedDataLength += snprintf(encodedData + encodedDataLength, 20, "Titlul:%d", i);
             encodedDataLength++;
-            encodedDataLength += snprintf((char *)encodedData + encodedDataLength, 20, "Secretul:%d", i);
+            encodedDataLength += snprintf(encodedData + encodedDataLength, 20, "Secretul:%d", i);
             encodedDataLength++;
         }
         encodedData[encodedDataLength++] = '\0';
@@ -151,13 +192,6 @@ static void finishWelcome(Window *win) {
     gbitmap_destroy(hiBM);
     gbitmap_destroy(okBM);
     gbitmap_destroy(lowBM);
-}
-
-static void mkDialog(int index, void *context) {
-    if (mainSection.num_items > (unsigned) index) {
-        secretToDelete = index;
-        window_stack_push(deleteDialog, true);
-    }
 }
 
 static void parseDecoded(const char *decoded, int const itemNr) {
@@ -183,12 +217,15 @@ static void startList(Window *win) {
     unsigned int passDebug;
     char * sectionTitle = (char *)malloc(41);
     memcpy(&passDebug, passKey, sizeof(passDebug));
-    parseDecoded((char *)encodedData, 0);
+    parseDecoded(encodedData, 0);
     mainSection.items = secretMenuItems;
     snprintf(sectionTitle, 41, "Keie:%08X", passDebug);
     mainSection.title = sectionTitle;
     secretsList = simple_menu_layer_create(bounds, win, &mainSection, 1, NULL);
     layer_add_child(root, simple_menu_layer_get_layer(secretsList));
+    window_stack_remove(welcomeWin, false);
+    app_message_register_inbox_received(addSecret);
+    app_message_open(APP_MESSAGE_INBOX_SIZE_MINIMUM, APP_MESSAGE_OUTBOX_SIZE_MINIMUM);
 }
 
 static void finishList(Window *fer) {

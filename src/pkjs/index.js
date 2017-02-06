@@ -14,7 +14,6 @@ Pebble.addEventListener('webviewclosed', function(e) {
     var dict = {
         "SecretTitle":configData["SecretTitle"],
         "SecretText":configData["SecretText"],
-        "EncriptionKey":configData["EncriptionKey"]
     };
     Pebble.sendAppMessage(dict,
         function() {console.log('Send successful: ' + JSON.stringify(dict));},

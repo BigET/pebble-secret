@@ -9,7 +9,7 @@ function processData() {
     for (var i = 0; i < vars.length; i++) {
         var pair = vars[i].split('=');
         if (pair[0] === "return_to") {
-            target = pair[1];
+            target = decodeURIComponent(pair[1]);
         }
     }
     var configData = {

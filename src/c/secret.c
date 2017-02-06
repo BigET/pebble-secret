@@ -1,7 +1,6 @@
 #include <pebble.h>
 
 static char *encodedData;
-static char *lastEncodedData;
 static unsigned encodedDataLength;
 
 static Window *welcomeWin;
@@ -41,30 +40,31 @@ static void readEncripted(int const itemNr, int const offset) {
         persist_read_data(itemNr, encodedData + offset, mySize);
 }
 
-static void encodeData(unsigned int const itemNr, unsigned int const offset) {
+static char *encodeData(unsigned int const itemNr, unsigned int const offset) {
     int const len1 = strlen(secretMenuItems[itemNr].title) + 1,
               len2 = strlen(secretItems[itemNr]) + 1;
     unsigned int const noffset = offset + len1 + len2;
+    char *lastEncodedData = NULL;
     if (itemNr == 0) {
         if (noffset > encodedDataLength) {
             lastEncodedData = encodedData;
             encodedData = (char *) malloc(noffset);
         }
         encodedDataLength = noffset;
-    } else encodeData(itemNr - 1, noffset);
+    } else lastEncodedData = encodeData(itemNr - 1, noffset);
     if (encodedData + encodedDataLength - noffset != secretMenuItems[itemNr].title) {
         memcpy(encodedData + encodedDataLength - noffset, secretMenuItems[itemNr].title, len1);
         memcpy(encodedData + encodedDataLength - noffset + len1, secretItems[itemNr], len2);
     }
+    return lastEncodedData;
 }
 
 static void writeEncripted() {
     int needItems;
     if (mainSection.num_items) {
-        encodeData(mainSection.num_items - 1, 0);
+        char * lastEncodedData = encodeData(mainSection.num_items - 1, 0);
         if (lastEncodedData) {
             free(lastEncodedData);
-            lastEncodedData = 0;
         }
     }
     needItems = (encodedDataLength + PERSIST_DATA_MAX_LENGTH - 1) / PERSIST_DATA_MAX_LENGTH;
@@ -73,7 +73,7 @@ static void writeEncripted() {
         unsigned char buffer[PERSIST_DATA_MAX_LENGTH];
         int const bufferlen = persist_read_data(i, buffer, PERSIST_DATA_MAX_LENGTH);
         int const inData = i + 1 < needItems ? PERSIST_DATA_MAX_LENGTH : encodedDataLength % PERSIST_DATA_MAX_LENGTH;
-        if (bufferlen != inData && memcmp(buffer, encodedData + i * PERSIST_DATA_MAX_LENGTH, inData))
+        if (bufferlen != inData || memcmp(buffer, encodedData + i * PERSIST_DATA_MAX_LENGTH, inData))
             persist_write_data(i, encodedData + i * PERSIST_DATA_MAX_LENGTH, inData);
     }
 }

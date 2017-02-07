@@ -48,9 +48,11 @@ static char *encodeData(unsigned int const itemNr, unsigned int const offset) {
     unsigned int const noffset = offset + len1 + len2;
     char *lastEncodedData = NULL;
     if (itemNr == 0) {
-        if (noffset > encodedDataLength) {
+        if (noffset > encodedDataLength || noffset % 8) {
+            unsigned int const padding = (noffset + 7) / 8 * 8;
             lastEncodedData = encodedData;
-            encodedData = (char *) malloc(noffset);
+            encodedData = (char *) malloc(padding);
+            for (unsigned int i = noffset; i < padding; ++i) encodedData[i] = '\0';
         }
         encodedDataLength = noffset;
     } else lastEncodedData = encodeData(itemNr - 1, noffset);
@@ -65,6 +67,7 @@ static void writeEncripted() {
     int needItems;
     if (mainSection.num_items) {
         char * lastEncodedData = encodeData(mainSection.num_items - 1, 0);
+        encodedDataLength = (encodedDataLength + 7) / 8 * 8;
         if (lastEncodedData) {
             free(lastEncodedData);
         }

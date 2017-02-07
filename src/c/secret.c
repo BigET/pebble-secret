@@ -1,4 +1,5 @@
 #include <pebble.h>
+#include "blowfish.h"
 
 static char *encodedData;
 static unsigned encodedDataLength;
@@ -29,7 +30,8 @@ static void readEncripted(int const itemNr, int const offset) {
     if (mySize == E_DOES_NOT_EXIST) mySize = 0;
     if (itemNr >= 4) {
        if (offset) {
-           encodedData = (char *) malloc(encodedDataLength = offset + 4);
+           encodedDataLength = offset;
+           encodedData = (char *) malloc(4 + offset);
            encodedData[offset] = '\0';
            encodedData[offset + 1] = '\0';
            encodedData[offset + 2] = '\0';
@@ -67,6 +69,7 @@ static void writeEncripted() {
             free(lastEncodedData);
         }
     }
+    bc_cbc_enc((unsigned char *)encodedData, encodedDataLength);
     needItems = (encodedDataLength + PERSIST_DATA_MAX_LENGTH - 1) / PERSIST_DATA_MAX_LENGTH;
     for (int i = needItems; i < 256; ++i) persist_delete(i);
     for (int i = 0; i < needItems ; ++i) {
@@ -121,7 +124,21 @@ static void addSecret(DictionaryIterator *iter, void *context) {
 }
 
 static void finishKey(ClickRecognizerRef recognizer, void *context) {
-    // decode encoded.
+    makeKey(passKey, (passKeyLen + 7) / 8);
+    if (!encodedData) {
+        encodedData = (char *)malloc(3*20);
+        encodedDataLength = 0;
+        for (int i = 0; i < 2; ++i) {
+            encodedDataLength += snprintf(encodedData + encodedDataLength, 20, "Titlul:%d", i);
+            encodedDataLength++;
+            encodedDataLength += snprintf(encodedData + encodedDataLength, 20, "Secretul:%d", i);
+            encodedDataLength++;
+        }
+        encodedData[encodedDataLength++] = '\0';
+        encodedData[encodedDataLength++] = '\0';
+    } else {
+        bc_cbc_dec((unsigned char *)encodedData, encodedDataLength);
+    }
     window_stack_push(secretsListWin, true);
 }
 
@@ -172,18 +189,6 @@ static void startWelcome(Window *win) {
     passKeyLen = 0;
     encodedData = 0;
     readEncripted(0, 0);
-    if (!encodedData) {
-        encodedData = (char *)malloc(17*20);
-        encodedDataLength = 0;
-        for (int i = 0; i < 16; ++i) {
-            encodedDataLength += snprintf(encodedData + encodedDataLength, 20, "Titlul:%d", i);
-            encodedDataLength++;
-            encodedDataLength += snprintf(encodedData + encodedDataLength, 20, "Secretul:%d", i);
-            encodedDataLength++;
-        }
-        encodedData[encodedDataLength++] = '\0';
-        encodedData[encodedDataLength++] = '\0';
-    }
 }
 
 static void finishWelcome(Window *win) {
@@ -219,8 +224,8 @@ static void startList(Window *win) {
     memcpy(&passDebug, passKey, sizeof(passDebug));
     parseDecoded(encodedData, 0);
     mainSection.items = secretMenuItems;
-    snprintf(sectionTitle, 41, "Keie:%08X", passDebug);
-    mainSection.title = sectionTitle;
+    snprintf(sectionTitle, 41, "KeyHM:%08X", passDebug);
+    mainSection.title = NULL;//sectionTitle;
     secretsList = simple_menu_layer_create(bounds, win, &mainSection, 1, NULL);
     layer_add_child(root, simple_menu_layer_get_layer(secretsList));
     window_stack_remove(welcomeWin, false);

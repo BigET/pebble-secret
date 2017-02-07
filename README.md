@@ -8,7 +8,7 @@ storage.
 
 When the application start it will ask for the encrypt/decrypt key.
 
-[Welcome screen](https://raw.githubusercontent.com/BigET/pebble-secret/master/screenshot/welcome.png)
+[Welcome screen](https://raw.githubusercontent.com/BigET/pebble-secret/master/screenshots/welcome.png)
 
 The encryption key input is done bit by bit in the welcome screen.
 
@@ -18,11 +18,11 @@ The encryption key input is done bit by bit in the welcome screen.
 
 After accepting the key you get the list of secrets. Each secret has a title and a body.
 
-[List of secrets](https://raw.githubusercontent.com/BigET/pebble-secret/master/screenshot/secret_list.png)
+[List of secrets](https://raw.githubusercontent.com/BigET/pebble-secret/master/screenshots/secret_list.png)
 
 You can choose a secret to see the body of it.
 
-[The secret body](https://raw.githubusercontent.com/BigET/pebble-secret/master/screenshot/delete_secret.png)
+[The secret body](https://raw.githubusercontent.com/BigET/pebble-secret/master/screenshots/delete_secret.png)
 
 Here you can go back or delete the secret by holding the select button.
 
